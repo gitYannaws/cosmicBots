@@ -69,6 +69,7 @@ public class TestScript extends AbstractScript implements ChatListener {
     private boolean isRunning;
     int loopNum = 0;
     int loopNumCycle = 0;
+    int forcedLog = 0;
     Boolean missingRune;
     Boolean whichAccount;
     public int totalRuneCollected  = 0;
@@ -79,29 +80,11 @@ public class TestScript extends AbstractScript implements ChatListener {
     int runeNum = 3;
     List<Integer> finalWorlds = new ArrayList<Integer>();
   //one accounts die, next account logs out?, perfect loggin in miliseconds/ multi threading? walk to bank?
-//    almightyswan13 is open     rr?
-    //almightyswan10 is at mossy//use distance for logoff time
+//    13 is open     rr?
+    //0 is at mossy//use distance for logoff time
     //use json instead of txt
 
-    String [][] accounts = {
 
-            {"almightyswan9@mail.com", "OldKyles10"},
-            {"almightyswan8@mail.com", "OldKyles10"},
-            {"almightyswan18@mail.com", "OldKyles10"},
-  {"almightyswan6@mail.com", "OldKyles10"},
-            {"almightyswan20@mail.com", "OldKyles10"},
-            {"almightyswan12@mail.com","OldKyles10"},
-    };
-//     String [][] accounts = {
-//
-//        {"almightyswan15@mail.com", "OldKyles10"}, //
-//        {"almightyswan16@mail.com", "OldKyles10"},//pvp world
-//        {"almightyswan17@mail.com", "OldKyles10"},
-//        {"almightyswan15@mail.com", "OldKyles10"}, //
-//        {"almightyswan14@mail.com", "OldKyles10"},
-//        {"almightyswan19@mail.com", "OldKyles10"},
-//        {"almightyswan11@mail.com", "OldKyles10"},
-//};
     public void onStart () {
 //        createGUI();
         Mouse.setAlwaysHop(false);
@@ -118,8 +101,8 @@ public class TestScript extends AbstractScript implements ChatListener {
         log(filterWorlds.size() + " " + filterWorlds);
         log(filterWorlds.size());
 //        finalWorlds = filterWorlds;
-//        finalWorlds = filterWorlds.subList(0, filterWorlds.size()/2);
-        finalWorlds = filterWorlds.subList((filterWorlds.size()/2), filterWorlds.size());
+        finalWorlds = filterWorlds.subList(0, filterWorlds.size()/2);
+//        finalWorlds = filterWorlds.subList((filterWorlds.size()/2), filterWorlds.size());
         print(filterWorlds.size() + "  " + filterWorlds);
 //        if(worldToHop == "Top") {
 //            log("Top Worlds Selected");
@@ -183,6 +166,7 @@ public class TestScript extends AbstractScript implements ChatListener {
             g.drawString("# total runes: " + totalRuneCollected, 10, 125);
             g.drawString("Hours Running: " + minutesRunning/60, 10, 140);
             g.drawString("Username: " +  ((matcher.find()) ? matcher.group() : ""), 10, 155);
+            g.drawString("Forced log: " +  forcedLog, 10, 170);
         } catch (Exception e) {
         }//.substring(12, 14)
     }
@@ -196,10 +180,11 @@ public class TestScript extends AbstractScript implements ChatListener {
 //                    sleep(300);
 //                }
               try {
-                  Sleep.sleepUntil(() -> (Tabs.isOpen(Tab.LOGOUT)), 30000); // 608 ms 10% chance of not logging out
-                  sleep(50); // slight latency to insurance tab is fully open
+                  Sleep.sleepUntil(() -> (Tabs.isOpen(Tab.LOGOUT) && Client.getGameState() == GameState.LOGGED_IN), 30000); // 608 ms 10% chance of not logging out
+                  sleep(50); // added 9-16-23 && GameState.LOGGED_IN
               } catch(Exception e) {
                   log("Tabs.isOpen Error: " + e);
+                  writetoCSV(Client.getUsername()+"", new Date()+"", Worlds.getCurrentWorld() + ""); //9-16-23 added
               }
                 searchPlayers(Boolean.FALSE, userAcc, userPass);
                 stayLoggedIn(userAcc, userPass, 1000*60*30);
@@ -280,6 +265,7 @@ public class TestScript extends AbstractScript implements ChatListener {
     private void stayLoggedIn(String userAcc, String userPass, int timeLen) {
         if (!Client.isLoggedIn()) {
             int milisecondsOut = (timeLen);
+            forcedLog += 1;
             log("Staying logged out for... " + milisecondsOut/(60*1000));
             sleep(milisecondsOut);
             LoginUtility.login(userAcc, userPass);
@@ -413,8 +399,7 @@ public class TestScript extends AbstractScript implements ChatListener {
             }
         }
     }
-
-    public boolean apiDiscord(Player randomPlayer){
+     public boolean apiDiscord(Player randomPlayer){
         int playerDefLevel = 0;
         try {
             playerDefLevel = new Highscores(randomPlayer.getName()).getSkillExperience(Highscores.Skills.DEFENCE);
@@ -463,9 +448,14 @@ public class TestScript extends AbstractScript implements ChatListener {
         catch (java.io.IOException e) {
             log(e);
         }
+         writetoCSV(randomPlayer.getName() + "", randomPlayer.getLevel() + "", Worlds.getCurrentWorld() + "");
+
+        return skulledorNotBoolean;
+    }
+    private void writetoCSV(String first, String second, String third) {
         String csvFile = "playersDatav1.csv";
-        String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s", randomPlayer.getName()+"", Worlds.getCurrentWorld()+"", randomPlayer.getLevel()+"", skulledOrNot+"", playerDefLevel+"", Math.round(randomPlayer.distance())+"" , randomPlayer.getHealthPercent()+"", total+"");
-//        String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,", "rstest", 17, 200, "faker", "ryan", 17, 200, "faker", 1);
+        String line = String.format("%s,%s,%s", first, second, third);
+        //String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,", "rstest", 17, 200, "faker", "ryan", 17, 200, "faker", 1);
         //armour
         log(line);
         try (FileWriter writer = new FileWriter(csvFile, true);
@@ -478,7 +468,6 @@ public class TestScript extends AbstractScript implements ChatListener {
         } catch (IOException e) {
             log("Error adding lines to CSV file: " + e.getMessage());
         }
-        return skulledorNotBoolean;
     }
 
 //    private void createGUI() {

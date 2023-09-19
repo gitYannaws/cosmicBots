@@ -2,6 +2,7 @@ import org.dreambot.api.Client;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +12,7 @@ public class test {
     public static void main(String[] args) {
         String csvFile = "playersDatav1.csv";
 //        String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s", randomPlayer.getName()+"", Worlds.getCurrentWorld()+"", randomPlayer.getLevel()+"", skulledOrNot+"", playerDefLevel+"", Math.round(randomPlayer.distance())+"" , randomPlayer.getHealthPercent()+"", total+"");
-        String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,", "rs", 17, 200, "faker", "ryan", 17, 200, "faker", 1);
+        String line = String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,", new Date()+"", 17, 200, "faker", "ryan", 17, 200, "faker", 1);
         //armour
         System.out.println(line);
         try (FileWriter writer = new FileWriter(csvFile, true);
